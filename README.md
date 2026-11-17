@@ -155,13 +155,15 @@ Las restricciones del frontend mejoran la experiencia de cada rol, pero la segur
 
 ## Cuentas de administrador
 
-Las cuentas nuevas siempre se crean como `CLIENTE`. Para tener un administrador:
+Al iniciar, el backend crea automáticamente una cuenta de administrador si todavía no existe (clase `AdminInicial`):
 
-1. Registrar la cuenta desde la página o con `POST /api/clientes`.
-2. Agregar ese correo a la lista de la clase `ActivarAdmin` (`backend/SnearksSource/src/main/java/.../config/ActivarAdmin.java`).
-3. Reiniciar el backend. El perfil `activar-admin-local` ya está activo en `application.properties`.
+| Correo | Contraseña | Rol |
+|---|---|---|
+| `admin@facture.cl` | `Admin123` | ADMIN |
 
-Un administrador también puede promover a otros usuarios desde el panel **Usuarios**.
+La contraseña se guarda cifrada con BCrypt. En producción se puede cambiar con las variables de entorno `APP_ADMIN_EMAIL` y `APP_ADMIN_PASSWORD`.
+
+Las cuentas que se registran desde la página siempre se crean como `CLIENTE`. Un administrador puede promover a otros usuarios desde el panel **Usuarios**.
 
 ---
 
