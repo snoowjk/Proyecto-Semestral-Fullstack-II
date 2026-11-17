@@ -1,8 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/adminUsuarios.css";
-import { apiFetch } from "../api.js";
+import { apiFetch, extraerMensaje } from "../api.js";
 
 const API = "/api/admin/clientes";
 
@@ -11,6 +10,10 @@ export default function AdminUsuarios() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [confirmandoId, setConfirmandoId] = useState(null);
+  const [promoviendoId, setPromoviendoId] = useState(null);
+  const [mensaje, setMensaje] = useState("");
+  const [errorAccion, setErrorAccion] = useState("");
 
   useEffect(() => {
     async function cargarUsuarios() {
@@ -39,6 +42,45 @@ export default function AdminUsuarios() {
     cargarUsuarios();
   }, []);
 
+  // PROMOVER UN CLIENTE A ADMINISTRADOR
+  async function promoverAdministrador(usuario) {
+    setPromoviendoId(usuario.id);
+    setMensaje("");
+    setErrorAccion("");
+
+    try {
+      const respuesta = await apiFetch(
+        `${API}/${usuario.id}/administrador`,
+        { method: "PUT" }
+      );
+
+      if (!respuesta.ok) {
+        const texto = await respuesta.text();
+        throw new Error(
+          extraerMensaje(texto) ||
+            "No se pudo promover al usuario."
+        );
+      }
+
+      const actualizado = await respuesta.json();
+
+      setUsuarios((anteriores) =>
+        anteriores.map((u) =>
+          u.id === usuario.id ? { ...u, ...actualizado } : u
+        )
+      );
+
+      setMensaje(
+        `${usuario.nombreCompleto} ahora es administrador.`
+      );
+    } catch (err) {
+      setErrorAccion(err.message);
+    } finally {
+      setPromoviendoId(null);
+      setConfirmandoId(null);
+    }
+  }
+
   const filtrados = usuarios.filter((usuario) => {
     const texto = `${usuario.nombreCompleto || ""} ${
       usuario.email || ""
@@ -59,7 +101,7 @@ export default function AdminUsuarios() {
             FACTURE SNEAKERS
           </span>
           <h1>Gestión de usuarios</h1>
-          <p>Consulta las cuentas registradas en la tienda.</p>
+          <p>Consulta las cuentas registradas y promueve clientes a administrador.</p>
         </div>
 
         <Link to="/admin" className="usuarios-volver">
@@ -95,6 +137,18 @@ export default function AdminUsuarios() {
 
       {error && <p className="usuarios-error">{error}</p>}
 
+      {errorAccion && (
+        <p className="usuarios-error" role="alert">
+          {errorAccion}
+        </p>
+      )}
+
+      {mensaje && (
+        <p className="usuarios-exito" role="status">
+          {mensaje}
+        </p>
+      )}
+
       {cargando ? (
         <p>Cargando usuarios...</p>
       ) : !error && filtrados.length === 0 ? (
@@ -111,6 +165,7 @@ export default function AdminUsuarios() {
                 <th>Correo</th>
                 <th>Comuna</th>
                 <th>Rol</th>
+                <th>Acciones</th>
               </tr>
             </thead>
 
@@ -131,6 +186,44 @@ export default function AdminUsuarios() {
                     >
                       {usuario.rol}
                     </span>
+                  </td>
+                  <td>
+                    {usuario.rol === "ADMIN" ? (
+                      <span className="usuarios-sin-accion">—</span>
+                    ) : confirmandoId === usuario.id ? (
+                      <div className="usuarios-acciones">
+                        <button
+                          type="button"
+                          className="usuarios-boton usuarios-boton-confirmar"
+                          disabled={promoviendoId === usuario.id}
+                          onClick={() => promoverAdministrador(usuario)}
+                        >
+                          {promoviendoId === usuario.id
+                            ? "PROMOVIENDO..."
+                            : "SÍ, PROMOVER"}
+                        </button>
+                        <button
+                          type="button"
+                          className="usuarios-boton usuarios-boton-cancelar"
+                          disabled={promoviendoId === usuario.id}
+                          onClick={() => setConfirmandoId(null)}
+                        >
+                          CANCELAR
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="usuarios-boton"
+                        onClick={() => {
+                          setConfirmandoId(usuario.id);
+                          setMensaje("");
+                          setErrorAccion("");
+                        }}
+                      >
+                        HACER ADMIN
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
