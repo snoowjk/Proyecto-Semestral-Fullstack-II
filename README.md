@@ -2,7 +2,7 @@
 
 Tienda online de zapatillas desarrollada para **DSY1104 Desarrollo Fullstack II** (Duoc UC), Evaluación Parcial 3.
 
-El proyecto está formado por un **frontend en React** y un **backend en Spring Boot** que se comunican mediante una API REST protegida con **JWT**.
+El proyecto está formado por un **frontend en React** y un **backend en Spring Boot** que se comunican mediante una API REST versionada (`/api/v1`) y protegida con **JWT** y tres roles: **CLIENTE**, **VENDEDOR** y **ADMIN**.
 
 | Proyecto | Carpeta | Tecnologías |
 |---|---|---|
@@ -51,7 +51,7 @@ La base de datos se crea sola en la carpeta `data/`, y en el primer arranque se 
 
 | Recurso | Dirección |
 |---|---|
-| API REST | http://localhost:8080/api |
+| API REST | http://localhost:8080/api/v1 |
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Consola H2 | http://localhost:8080/h2-console (JDBC URL `jdbc:h2:file:./data/facturedb`, usuario `sa`, sin contraseña) |
 
@@ -78,7 +78,27 @@ Abrir http://localhost:5173
 **Administrador:** todo lo anterior, más el panel de administración para:
 - Crear, editar y eliminar productos.
 - Ver todos los pedidos y cambiar su estado (CREADA, PAGADA, ENVIADA).
-- Ver usuarios y promover cuentas a administrador.
+- Ver usuarios y asignarles el rol de vendedor o de administrador.
+
+**Vendedor:** panel propio con acceso de solo lectura para:
+- Ver la lista de productos y su detalle (descripción y stock por talla).
+- Ver la lista de pedidos y su detalle.
+
+Al vendedor no le aparecen el carrito, sus compras ni las opciones de administración.
+
+---
+
+## Base de datos
+
+Se usa **H2**, una base de datos relacional con SQL estándar, en modo archivo (`backend/SnearksSource/data`). Se crea automáticamente, por lo que el proyecto se ejecuta sin instalar un servidor de base de datos. Como el acceso a datos se hace con JPA/Hibernate, migrar a MySQL u Oracle solo requiere cambiar la conexión en `application.properties` y agregar el driver.
+
+| Tabla | Contenido |
+|---|---|
+| `cliente` | Usuarios y su rol (CLIENTE, VENDEDOR o ADMIN) |
+| `producto` y `producto_tallas` | Zapatillas, su categoría y el stock por talla |
+| `carrito` y `carrito_items` | Carrito de cada cliente |
+| `boleta` y `boleta_items` | Compras y su detalle |
+| `blogs` | Publicaciones del blog |
 
 ---
 
@@ -98,14 +118,18 @@ Todos los endpoints están documentados en Swagger. Los principales:
 
 | Recurso | Endpoints | Acceso |
 |---|---|---|
-| Autenticación | `POST /api/clientes` (registro) · `POST /api/clientes/login` · `POST /api/clientes/refresh` · `POST /api/clientes/logout` · `GET /api/clientes/me` | Público, salvo `/me` |
-| Productos | `GET /api/productos` · `GET /api/productos/{id}` · `GET /api/productos/categoria/{jordan, sports, urban}` | Público |
-| Productos | `POST /api/productos` · `PUT /api/productos/{id}` · `DELETE /api/productos/{id}` | ADMIN |
-| Blogs | `GET /api/blogs` · `GET /api/blogs/{id}` | Público |
-| Blogs | `POST` · `PUT` · `DELETE /api/blogs/...` | ADMIN |
-| Carrito | `GET` · `POST` · `PUT` · `DELETE /api/clientes/{id}/carrito/...` | Dueño del carrito o ADMIN |
-| Boletas | `GET` · `POST /api/clientes/{id}/boletas` | Dueño de las boletas o ADMIN |
-| Administración | `/api/admin/clientes/...` · `/api/admin/boletas/...` | ADMIN |
+| Autenticación | `POST /api/v1/clientes` (registro) · `POST /api/v1/clientes/login` · `POST /api/v1/clientes/refresh` · `POST /api/v1/clientes/logout` · `GET /api/v1/clientes/me` | Público, salvo `/me` |
+| Productos | `GET /api/v1/productos` · `GET /api/v1/productos/{id}` · `GET /api/v1/productos/categoria/{jordan, sports, urban}` | Público |
+| Productos | `POST /api/v1/productos` · `PUT /api/v1/productos/{id}` · `DELETE /api/v1/productos/{id}` | ADMIN |
+| Blogs | `GET /api/v1/blogs` · `GET /api/v1/blogs/{id}` | Público |
+| Blogs | `POST` · `PUT` · `DELETE /api/v1/blogs/...` | ADMIN |
+| Carrito | `GET` · `POST` · `PUT` · `DELETE /api/v1/clientes/{id}/carrito/...` | Dueño del carrito o ADMIN |
+| Boletas | `GET` · `POST /api/v1/clientes/{id}/boletas` | Dueño de las boletas o ADMIN |
+| Pedidos (todos) | `GET /api/v1/admin/boletas` · `GET /api/v1/admin/boletas/{id}` | ADMIN y VENDEDOR |
+| Pedidos (todos) | `PUT /api/v1/admin/boletas/{id}/estado` | ADMIN |
+| Usuarios | `GET /api/v1/admin/clientes` · `POST /api/v1/admin/clientes/administradores` · `PUT /api/v1/admin/clientes/{id}/administrador` · `PUT /api/v1/admin/clientes/{id}/vendedor` | ADMIN |
+
+El detalle de cada endpoint (datos de entrada, respuestas y roles) está en Swagger y en el documento *Anexo 3 – Documentación de APIs*.
 
 Todos los errores responden con el mismo formato JSON:
 
@@ -142,28 +166,32 @@ Todos los errores responden con el mismo formato JSON:
 | Ruta | Requisito |
 |---|---|
 | `/admin`, `/admin/productos`, `/admin/pedidos`, `/admin/usuarios` | Rol ADMIN |
+| `/vendedor`, `/vendedor/productos`, `/vendedor/pedidos` | Rol VENDEDOR |
 | `/checkout`, `/compra-exitosa`, `/mis-pedidos`, `/mi-perfil` | Sesión iniciada |
 | Catálogo, detalle, blogs, contacto, nosotros | Público |
 
 - Sin sesión, el componente `RutaProtegida` redirige al login y después devuelve al usuario a la página que quería abrir.
 - Con sesión pero sin el rol necesario, muestra **ACCESO DENEGADO**.
-- El menú oculta las opciones de administración a los clientes.
+- El menú muestra solo las opciones de cada rol: el cliente no ve la administración, y el vendedor solo ve su panel y Cerrar sesión.
 
 Las restricciones del frontend mejoran la experiencia de cada rol, pero la seguridad real está en el backend, que valida el token y el rol en cada petición.
 
 ---
 
-## Cuentas de administrador
+## Cuentas de prueba
 
-Al iniciar, el backend crea automáticamente una cuenta de administrador si todavía no existe (clase `AdminInicial`):
+Al iniciar, el backend crea automáticamente estas cuentas si todavía no existen (clase `AdminInicial`):
 
 | Correo | Contraseña | Rol |
 |---|---|---|
 | `admin@facture.cl` | `Admin123` | ADMIN |
+| `vendedor@facture.cl` | `Vendedor123` | VENDEDOR |
 
-La contraseña se guarda cifrada con BCrypt. En producción se puede cambiar con las variables de entorno `APP_ADMIN_EMAIL` y `APP_ADMIN_PASSWORD`.
+Las contraseñas se guardan cifradas con BCrypt. Se pueden cambiar con las variables de entorno `APP_ADMIN_EMAIL`, `APP_ADMIN_PASSWORD`, `APP_VENDEDOR_EMAIL` y `APP_VENDEDOR_PASSWORD`.
 
-Las cuentas que se registran desde la página siempre se crean como `CLIENTE`. Un administrador puede promover a otros usuarios desde el panel **Usuarios**.
+Las cuentas que se registran desde la página siempre se crean como `CLIENTE`. El administrador puede asignar los roles de vendedor o administrador desde el panel **Usuarios**.
+
+> Si la base de datos se creó con una versión anterior del proyecto (sin el rol VENDEDOR), hay que detener el backend y borrar la carpeta `backend/SnearksSource/data` para que se cree de nuevo.
 
 ---
 
@@ -176,13 +204,16 @@ cd backend/SnearksSource
 ./gradlew test           # Windows: gradlew.bat test
 ```
 
-`IntegracionApiTests` levanta la aplicación completa con una base de datos H2 en memoria (no toca los datos reales) y verifica:
+`IntegracionApiTests` levanta la aplicación completa con una base de datos H2 en memoria (no toca los datos reales). Sus 13 pruebas verifican:
 
 - Login con JWT y cookie `HttpOnly` de renovación.
 - Rechazo de credenciales incorrectas, de peticiones sin token y de tokens alterados.
 - Renovación del token y revocación al cerrar sesión.
 - Que un cliente no pueda crear productos ni blogs, ni entrar a la administración.
 - Que un cliente no pueda ver el carrito de otro.
+- Que el vendedor pueda consultar productos y pedidos, pero no modificarlos ni ver usuarios (403).
+- Que un cliente no pueda ver los pedidos de todos.
+- Que el administrador pueda asignar el rol de vendedor.
 - El CRUD completo de productos como administrador.
 - La validación de stock y su descuento al comprar.
 
@@ -193,7 +224,7 @@ cd frontend/frontend-react
 npm test
 ```
 
-Ejecuta las pruebas con Jasmine y Karma en Chrome headless y genera el reporte de cobertura en `coverage/html`.
+Ejecuta las 48 pruebas con Jasmine y Karma en Chrome headless (inicio de sesión, carrito con renovación automática del token, catálogo y menú según el rol) y genera el reporte de cobertura en `coverage/html`.
 
 ---
 
