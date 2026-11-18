@@ -17,7 +17,7 @@ export default function MiPerfil() {
     async function cargarPerfil() {
       try {
         const respuesta = await apiFetch(
-          `${API}/api/clientes/me`,
+          `${API}/api/v1/clientes/me`,
           {
             credentials: "include",
           }

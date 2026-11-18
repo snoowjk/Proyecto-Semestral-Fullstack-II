@@ -16,7 +16,7 @@ export default function Blogs() {
 
     async function cargarBlogs() {
       try {
-        const respuesta = await apiFetch(`${API}/api/blogs`, {
+        const respuesta = await apiFetch(`${API}/api/v1/blogs`, {
           signal: controlador.signal,
         });
 

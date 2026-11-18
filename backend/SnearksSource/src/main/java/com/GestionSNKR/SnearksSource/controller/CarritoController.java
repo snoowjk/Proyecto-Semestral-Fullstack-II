@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * ver ni modificar el carrito de otro cambiando el número en la URL.
  */
 @RestController
-@RequestMapping("/api/clientes/{clienteId}/carrito")
+@RequestMapping("/api/v1/clientes/{clienteId}/carrito")
 @Tag(name = "Carrito", description = "Carrito de compras del cliente autenticado")
 public class CarritoController {
 

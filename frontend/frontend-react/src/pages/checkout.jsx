@@ -52,7 +52,7 @@ export default function Checkout() {
 
       try {
         const respuesta = await apiFetch(
-          `${API}/api/clientes/${clienteId}/carrito`,
+          `${API}/api/v1/clientes/${clienteId}/carrito`,
           {
             method: "GET",
             credentials: "include",
@@ -129,7 +129,7 @@ export default function Checkout() {
 
     try {
       const respuesta = await apiFetch(
-        `${API}/api/clientes/${clienteId}/boletas`,
+        `${API}/api/v1/clientes/${clienteId}/boletas`,
         {
           method: "POST",
           credentials: "include",

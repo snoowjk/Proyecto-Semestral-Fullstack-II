@@ -17,7 +17,7 @@ function Jordan() {
     async function cargarProductos() {
       try {
         const respuesta = await apiFetch(
-          '/api/productos/categoria/jordan',
+          '/api/v1/productos/categoria/jordan',
           { signal: controlador.signal }
         );
 

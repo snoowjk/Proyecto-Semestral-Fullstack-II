@@ -7,7 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Evita que un cliente acceda a recursos de otro cliente cambiando el id de
- * la URL (por ejemplo /api/clientes/5/boletas). Solo el dueño del recurso o
+ * la URL (por ejemplo /api/v1/clientes/5/boletas). Solo el dueño del recurso o
  * un ADMIN pueden continuar; en cualquier otro caso se responde 403.
  */
 @Component

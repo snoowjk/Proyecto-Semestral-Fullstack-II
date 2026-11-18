@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/blogs")
+@RequestMapping("/api/v1/blogs")
 @Tag(name = "Blogs", description = "Noticias de la tienda. Lectura pública; escritura solo ADMIN")
 public class BlogsController {
 

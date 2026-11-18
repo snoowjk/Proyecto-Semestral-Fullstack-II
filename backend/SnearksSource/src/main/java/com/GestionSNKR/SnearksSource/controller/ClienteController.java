@@ -34,7 +34,7 @@ import java.util.Optional;
  *  - me      -> datos del usuario dueño del accessToken
  */
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/v1/clientes")
 @Tag(name = "Autenticación y clientes", description = "Registro, login, renovación de token y sesión")
 public class ClienteController {
 
@@ -184,14 +184,14 @@ public class ClienteController {
      * Cookie del refresh token:
      *  - HttpOnly: JavaScript no puede leerla (protege contra XSS).
      *  - SameSite=Strict: no se envía desde otros sitios (protege contra CSRF).
-     *  - Path=/api/clientes: solo viaja a login, refresh y logout.
+     *  - Path=/api/v1/clientes: solo viaja a login, refresh y logout.
      */
     private ResponseCookie cookieRefresh(String valor, Duration duracion) {
         return ResponseCookie.from(COOKIE_REFRESH, valor)
                 .httpOnly(true)
                 .secure(cookieSegura)
                 .sameSite("Strict")
-                .path("/api/clientes")
+                .path("/api/v1/clientes")
                 .maxAge(duracion)
                 .build();
     }

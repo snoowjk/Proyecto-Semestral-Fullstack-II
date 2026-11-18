@@ -28,7 +28,7 @@ function Detalle() {
 
       try {
         const respuesta = await apiFetch(
-          `/api/productos/${encodeURIComponent(id)}`,
+          `/api/v1/productos/${encodeURIComponent(id)}`,
           { signal: controlador.signal }
         );
 

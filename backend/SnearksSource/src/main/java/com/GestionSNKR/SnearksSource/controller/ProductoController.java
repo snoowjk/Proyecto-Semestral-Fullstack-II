@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/productos")
+@RequestMapping("/api/v1/productos")
 @Tag(name = "Productos", description = "Catálogo de zapatillas. Lectura pública; crear, editar y eliminar requiere rol ADMIN")
 public class ProductoController {
 

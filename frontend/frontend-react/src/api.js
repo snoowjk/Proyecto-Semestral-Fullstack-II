@@ -42,7 +42,7 @@ function construirUrl(ruta) {
  */
 export function renovarToken() {
   if (!renovacionEnCurso) {
-    renovacionEnCurso = fetch(construirUrl("/api/clientes/refresh"), {
+    renovacionEnCurso = fetch(construirUrl("/api/v1/clientes/refresh"), {
       method: "POST",
       credentials: "include",
     })
@@ -80,8 +80,8 @@ export async function apiFetch(ruta, opciones = {}, reintentar = true) {
   });
 
   const esRutaDeAutenticacion =
-    url.includes("/api/clientes/login") ||
-    url.includes("/api/clientes/refresh");
+    url.includes("/api/v1/clientes/login") ||
+    url.includes("/api/v1/clientes/refresh");
 
   if (respuesta?.status === 401 && reintentar && !esRutaDeAutenticacion) {
     try {

@@ -25,7 +25,7 @@ export default function Login({ onLogin }) {
 
     try {
       const respuesta = await apiFetch(
-        "/api/clientes/login",
+        "/api/v1/clientes/login",
         {
           method: "POST",
           headers: {

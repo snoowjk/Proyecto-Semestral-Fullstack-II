@@ -44,7 +44,7 @@ class IntegracionApiTests {
     void loginEntregaAccessTokenYCookieDeRefreshHttpOnly() throws Exception {
         String email = registrarCliente();
 
-        MvcResult res = mvc.perform(post("/api/clientes/login")
+        MvcResult res = mvc.perform(post("/api/v1/clientes/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credenciales(email)))
                 .andExpect(status().isOk())
@@ -60,7 +60,7 @@ class IntegracionApiTests {
     @Test
     void loginConClaveIncorrectaResponde401() throws Exception {
         String email = registrarCliente();
-        mvc.perform(post("/api/clientes/login")
+        mvc.perform(post("/api/v1/clientes/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"contrasena\":\"otra\"}"))
                 .andExpect(status().isUnauthorized());
@@ -68,7 +68,7 @@ class IntegracionApiTests {
 
     @Test
     void endpointProtegidoSinTokenResponde401() throws Exception {
-        mvc.perform(get("/api/clientes/me")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/clientes/me")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -76,7 +76,7 @@ class IntegracionApiTests {
         String token = login(registrarCliente()).token();
         String alterado = token.substring(0, token.length() - 3) + "abc";
 
-        mvc.perform(get("/api/clientes/me").header("Authorization", "Bearer " + alterado))
+        mvc.perform(get("/api/v1/clientes/me").header("Authorization", "Bearer " + alterado))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -84,26 +84,26 @@ class IntegracionApiTests {
     void refreshEntregaNuevoTokenYLogoutLosRevoca() throws Exception {
         Sesion sesion = login(registrarCliente());
 
-        mvc.perform(get("/api/clientes/me").header("Authorization", "Bearer " + sesion.token()))
+        mvc.perform(get("/api/v1/clientes/me").header("Authorization", "Bearer " + sesion.token()))
                 .andExpect(status().isOk());
 
         // Renovación con la cookie HttpOnly
-        MvcResult refresh = mvc.perform(post("/api/clientes/refresh").cookie(sesion.refresh()))
+        MvcResult refresh = mvc.perform(post("/api/v1/clientes/refresh").cookie(sesion.refresh()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andReturn();
         Cookie refreshNuevo = refresh.getResponse().getCookie("refresh_token");
 
         // Logout: incrementa la versión de token del usuario
-        mvc.perform(post("/api/clientes/logout").cookie(refreshNuevo))
+        mvc.perform(post("/api/v1/clientes/logout").cookie(refreshNuevo))
                 .andExpect(status().isOk());
 
         // El access token anterior queda revocado aunque no haya expirado
-        mvc.perform(get("/api/clientes/me").header("Authorization", "Bearer " + sesion.token()))
+        mvc.perform(get("/api/v1/clientes/me").header("Authorization", "Bearer " + sesion.token()))
                 .andExpect(status().isUnauthorized());
 
         // Y el refresh tampoco sirve
-        mvc.perform(post("/api/clientes/refresh").cookie(refreshNuevo))
+        mvc.perform(post("/api/v1/clientes/refresh").cookie(refreshNuevo))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -115,15 +115,15 @@ class IntegracionApiTests {
     void clienteNoPuedeCrearProductosNiBlogsNiEntrarAAdmin() throws Exception {
         String token = login(registrarCliente()).token();
 
-        mvc.perform(post("/api/productos").header("Authorization", "Bearer " + token)
+        mvc.perform(post("/api/v1/productos").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content(productoJson(5)))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(post("/api/blogs").header("Authorization", "Bearer " + token)
+        mvc.perform(post("/api/v1/blogs").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"titulo\":\"x\"}"))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(get("/api/admin/clientes").header("Authorization", "Bearer " + token))
+        mvc.perform(get("/api/v1/admin/clientes").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
     }
 
@@ -132,10 +132,10 @@ class IntegracionApiTests {
         Sesion a = login(registrarCliente());
         Sesion b = login(registrarCliente());
 
-        mvc.perform(get("/api/clientes/" + b.id() + "/carrito").header("Authorization", "Bearer " + a.token()))
+        mvc.perform(get("/api/v1/clientes/" + b.id() + "/carrito").header("Authorization", "Bearer " + a.token()))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(get("/api/clientes/" + a.id() + "/carrito").header("Authorization", "Bearer " + a.token()))
+        mvc.perform(get("/api/v1/clientes/" + a.id() + "/carrito").header("Authorization", "Bearer " + a.token()))
                 .andExpect(status().isOk());
     }
 
@@ -148,29 +148,29 @@ class IntegracionApiTests {
         String token = login(crearAdmin()).token();
 
         // CREATE
-        MvcResult creado = mvc.perform(post("/api/productos").header("Authorization", "Bearer " + token)
+        MvcResult creado = mvc.perform(post("/api/v1/productos").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content(productoJson(5)))
                 .andExpect(status().isCreated())
                 .andReturn();
         Number id = JsonPath.read(creado.getResponse().getContentAsString(), "$.id");
 
         // READ
-        mvc.perform(get("/api/productos/" + id))
+        mvc.perform(get("/api/v1/productos/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombreModelo").value("Zapatilla de prueba"));
 
         // UPDATE
-        mvc.perform(put("/api/productos/" + id).header("Authorization", "Bearer " + token)
+        mvc.perform(put("/api/v1/productos/" + id).header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productoJson(5).replace("Zapatilla de prueba", "Modelo editado")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombreModelo").value("Modelo editado"));
 
         // DELETE
-        mvc.perform(delete("/api/productos/" + id).header("Authorization", "Bearer " + token))
+        mvc.perform(delete("/api/v1/productos/" + id).header("Authorization", "Bearer " + token))
                 .andExpect(status().isNoContent());
 
-        mvc.perform(get("/api/productos/" + id)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/productos/" + id)).andExpect(status().isNotFound());
     }
 
     // ---------------------------------------------------------------
@@ -180,13 +180,13 @@ class IntegracionApiTests {
     @Test
     void noSePuedeAgregarMasQueElStockYCheckoutDescuentaStock() throws Exception {
         String admin = login(crearAdmin()).token();
-        MvcResult creado = mvc.perform(post("/api/productos").header("Authorization", "Bearer " + admin)
+        MvcResult creado = mvc.perform(post("/api/v1/productos").header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON).content(productoJson(2)))
                 .andExpect(status().isCreated()).andReturn();
         Number productoId = JsonPath.read(creado.getResponse().getContentAsString(), "$.id");
 
         Sesion cliente = login(registrarCliente());
-        String carrito = "/api/clientes/" + cliente.id() + "/carrito/items";
+        String carrito = "/api/v1/clientes/" + cliente.id() + "/carrito/items";
 
         // Pide 3 unidades con stock 2 -> 400
         mvc.perform(post(carrito).header("Authorization", "Bearer " + cliente.token())
@@ -202,7 +202,7 @@ class IntegracionApiTests {
                 .andExpect(status().isCreated());
 
         // Checkout -> crea la boleta y vacía el carrito
-        mvc.perform(post("/api/clientes/" + cliente.id() + "/boletas")
+        mvc.perform(post("/api/v1/clientes/" + cliente.id() + "/boletas")
                         .header("Authorization", "Bearer " + cliente.token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"metodoPago\":\"TARJETA\",\"direccion\":\"Av. Siempre Viva 123\"}"))
@@ -210,7 +210,7 @@ class IntegracionApiTests {
                 .andExpect(jsonPath("$.estado").value("CREADA"));
 
         // El stock de la talla 40 quedó en 0
-        mvc.perform(get("/api/productos/" + productoId))
+        mvc.perform(get("/api/v1/productos/" + productoId))
                 .andExpect(jsonPath("$.tallasDisponibles['40']").value(0));
     }
 
@@ -222,7 +222,7 @@ class IntegracionApiTests {
 
     private String registrarCliente() throws Exception {
         String email = "cliente" + SECUENCIA.incrementAndGet() + "@test.cl";
-        mvc.perform(post("/api/clientes")
+        mvc.perform(post("/api/v1/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombreCompleto\":\"Cliente Test\",\"email\":\"" + email
                                 + "\",\"contrasena\":\"Clave123\",\"rol\":\"ADMIN\"}"))
@@ -244,7 +244,7 @@ class IntegracionApiTests {
     }
 
     private Sesion login(String email) throws Exception {
-        MvcResult res = mvc.perform(post("/api/clientes/login")
+        MvcResult res = mvc.perform(post("/api/v1/clientes/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credenciales(email)))
                 .andExpect(status().isOk())

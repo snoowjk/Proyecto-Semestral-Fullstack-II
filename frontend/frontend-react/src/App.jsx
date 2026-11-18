@@ -334,7 +334,7 @@ function App() {
     setCerrandoSesion(true);
 
     try {
-      await apiFetch("/api/clientes/logout", { method: "POST" });
+      await apiFetch("/api/v1/clientes/logout", { method: "POST" });
     } catch {
       // Aunque el servidor no responda, la sesión local se cierra igual
     } finally {

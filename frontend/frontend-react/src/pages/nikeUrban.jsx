@@ -18,7 +18,7 @@ function NikeUrban() {
     async function cargarProductos() {
       try {
         const respuesta = await apiFetch(
-          '/api/productos/categoria/urban',
+          '/api/v1/productos/categoria/urban',
           {
             signal: controlador.signal,
           }

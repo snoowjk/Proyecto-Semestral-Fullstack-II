@@ -20,7 +20,7 @@ import java.util.List;
  * o crear una nueva compra a su nombre.
  */
 @RestController
-@RequestMapping("/api/clientes/{clienteId}/boletas")
+@RequestMapping("/api/v1/clientes/{clienteId}/boletas")
 @Tag(name = "Boletas del cliente", description = "Checkout e historial de compras")
 public class BoletaController {
 

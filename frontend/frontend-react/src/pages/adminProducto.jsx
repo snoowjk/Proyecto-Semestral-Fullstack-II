@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import "../styles/adminProducto.css";
 import { apiFetch } from "../api.js";
 
-const API = "/api/productos";
+const API = "/api/v1/productos";
 
 const TALLAS = [
   "35", "36", "37", "38", "39", "40",

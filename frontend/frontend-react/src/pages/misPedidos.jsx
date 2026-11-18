@@ -66,7 +66,7 @@ export default function MisPedidos() {
 
         // OBTENER PEDIDOS DEL CLIENTE
         const respuesta = await apiFetch(
-          `${API}/api/clientes/${clienteId}/boletas`,
+          `${API}/api/v1/clientes/${clienteId}/boletas`,
           {
             method: "GET",
             credentials: "include",

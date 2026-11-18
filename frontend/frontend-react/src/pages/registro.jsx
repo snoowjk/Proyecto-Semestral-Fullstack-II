@@ -134,7 +134,7 @@ function Registro() {
 
     try {
       const respuesta = await apiFetch(
-        "/api/clientes",
+        "/api/v1/clientes",
         {
           method: "POST",
           headers: {

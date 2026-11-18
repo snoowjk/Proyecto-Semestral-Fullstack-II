@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import "../styles/adminPedidos.css";
 import { apiFetch } from "../api.js";
 
-const API = "/api/admin/boletas";
+const API = "/api/v1/admin/boletas";
 
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);

@@ -30,7 +30,7 @@ public class OpenApiConfig {
                                 API REST de la tienda online Facture Sneakers (DSY1104).
 
                                 **Cómo probar endpoints protegidos:**
-                                1. Ejecuta `POST /api/clientes/login` con un usuario válido.
+                                1. Ejecuta `POST /api/v1/clientes/login` con un usuario válido.
                                 2. Copia el valor `accessToken` de la respuesta.
                                 3. Presiona **Authorize** e ingresa el token (sin la palabra Bearer).
                                 """)
@@ -40,7 +40,7 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("Token de acceso obtenido en /api/clientes/login")))
+                                .description("Token de acceso obtenido en /api/v1/clientes/login")))
                 .addSecurityItem(new SecurityRequirement().addList(ESQUEMA_JWT));
     }
 }

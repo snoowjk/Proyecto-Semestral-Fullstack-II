@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/clientes")
+@RequestMapping("/api/v1/admin/clientes")
 public class AdminClienteController {
 
     private final ClienteService clienteService;

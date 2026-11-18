@@ -31,7 +31,7 @@ export default function Carrito() {
   const clienteId = usuario?.id;
 
   // apiFetch agrega la dirección del servidor y el token JWT
-  const baseUrl = `/api/clientes/${clienteId}/carrito`;
+  const baseUrl = `/api/v1/clientes/${clienteId}/carrito`;
 
   useEffect(() => {
     if (!clienteId) {

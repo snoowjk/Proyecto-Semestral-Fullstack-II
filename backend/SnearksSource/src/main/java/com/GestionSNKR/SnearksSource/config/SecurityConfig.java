@@ -84,31 +84,31 @@ public class SecurityConfig {
                         // Registro, login, renovación de token y cierre de sesión
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/clientes",
-                                "/api/clientes/login",
-                                "/api/clientes/refresh",
-                                "/api/clientes/logout"
+                                "/api/v1/clientes",
+                                "/api/v1/clientes/login",
+                                "/api/v1/clientes/refresh",
+                                "/api/v1/clientes/logout"
                         ).permitAll()
 
                         // Catálogo y blogs: lectura pública
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/productos",
-                                "/api/productos/**",
-                                "/api/blogs",
-                                "/api/blogs/**"
+                                "/api/v1/productos",
+                                "/api/v1/productos/**",
+                                "/api/v1/blogs",
+                                "/api/v1/blogs/**"
                         ).permitAll()
 
                         // Productos y blogs: crear, editar y eliminar solo ADMIN
-                        .requestMatchers(HttpMethod.POST, "/api/productos", "/api/productos/**",
-                                "/api/blogs", "/api/blogs/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/**",
-                                "/api/blogs/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**",
-                                "/api/blogs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/productos", "/api/v1/productos/**",
+                                "/api/v1/blogs", "/api/v1/blogs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/productos/**",
+                                "/api/v1/blogs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/productos/**",
+                                "/api/v1/blogs/**").hasRole("ADMIN")
 
                         // Panel de administración
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // Carrito, boletas y perfil: usuario autenticado
                         .anyRequest().authenticated()

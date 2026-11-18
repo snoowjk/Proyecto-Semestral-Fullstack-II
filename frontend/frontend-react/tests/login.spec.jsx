@@ -84,7 +84,7 @@ describe("Facture Sneakers - Login (estado, validación y mocks)", () => {
 
     const [url, opciones] = espiaFetch.calls.mostRecent().args;
 
-    expect(url).toBe("http://localhost:8080/api/clientes/login");
+    expect(url).toBe("http://localhost:8080/api/v1/clientes/login");
     expect(opciones.method).toBe("POST");
     expect(JSON.parse(opciones.body)).toEqual({
       email: "juana@ejemplo.com", // el correo se envía sin espacios

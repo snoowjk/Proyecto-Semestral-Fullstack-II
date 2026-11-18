@@ -37,7 +37,7 @@ function Compra() {
 
       try {
         const respuesta = await apiFetch(
-          `/api/productos/${encodeURIComponent(id)}`,
+          `/api/v1/productos/${encodeURIComponent(id)}`,
           {
             method: "GET",
             signal: controlador.signal,
@@ -136,7 +136,7 @@ function Compra() {
       // apiFetch agrega el header "Authorization: Bearer <token>"
       // y renueva el token automáticamente si expiró.
       const respuesta = await apiFetch(
-        `/api/clientes/${usuario.id}/carrito/items`,
+        `/api/v1/clientes/${usuario.id}/carrito/items`,
         {
           method: "POST",
           headers: {

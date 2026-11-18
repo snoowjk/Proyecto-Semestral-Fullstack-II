@@ -3,7 +3,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Carrito from "../src/pages/carrito.jsx";
 
-const BASE = "http://localhost:8080/api/clientes/5/carrito";
+const BASE = "http://localhost:8080/api/v1/clientes/5/carrito";
 
 const item = {
   productoId: 10,
@@ -112,7 +112,7 @@ describe("Facture Sneakers - Carrito (estado, mocks y Bootstrap)", () => {
 
     // 1) GET del carrito -> 401   2) POST /refresh -> 401
     const urls = espiaFetch.calls.allArgs().map(([url]) => url);
-    expect(urls).toContain("http://localhost:8080/api/clientes/refresh");
+    expect(urls).toContain("http://localhost:8080/api/v1/clientes/refresh");
     expect(alExpirar).toHaveBeenCalled();
     expect(sessionStorage.getItem("facture_usuario")).toBeNull();
 

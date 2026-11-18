@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "../styles/adminUsuarios.css";
 import { apiFetch, extraerMensaje } from "../api.js";
 
-const API = "/api/admin/clientes";
+const API = "/api/v1/admin/clientes";
 
 export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
