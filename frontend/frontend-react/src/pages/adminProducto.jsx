@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/adminProducto.css";
@@ -19,6 +18,14 @@ const formularioInicial = () => ({
   tipoCategoria: "Nike Urban",
   tallasDisponibles: {},
 });
+
+// Las imágenes precargadas usan rutas relativas ("img/re1.png"). Sin la "/"
+// inicial, en /admin/productos el navegador las buscaría en /admin/img/...
+function rutaImagen(ruta) {
+  if (!ruta) return "";
+  if (/^https?:\/\//i.test(ruta)) return ruta;
+  return `/${ruta.replace(/^\/+/, "")}`;
+}
 
 /**
  * Productos de la tienda.
@@ -445,7 +452,7 @@ export default function AdminProductos({ soloLectura = false }) {
                 >
                   {producto.linkImagen ? (
                     <img
-                      src={producto.linkImagen}
+                      src={rutaImagen(producto.linkImagen)}
                       alt={producto.nombreModelo}
                     />
                   ) : (
