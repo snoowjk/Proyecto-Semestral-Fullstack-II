@@ -5,6 +5,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
  *
  *  - Sin sesión: redirige a /login y recuerda la página que se quería abrir.
  *  - Con sesión pero sin el rol requerido: muestra "Acceso denegado".
+ *    El rol puede ser uno ("ADMIN") o varios (["ADMIN", "VENDEDOR"]).
  *  - Con sesión y rol correcto: muestra la página.
  *
  * Importante: esto mejora la experiencia de usuario, pero la seguridad real
@@ -23,7 +24,10 @@ export default function RutaProtegida({ usuario, rol, children }) {
     );
   }
 
-  if (rol && usuario.rol !== rol) {
+  // rol puede ser un texto ("ADMIN") o una lista (["ADMIN", "VENDEDOR"])
+  const rolesPermitidos = Array.isArray(rol) ? rol : rol ? [rol] : [];
+
+  if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(usuario.rol)) {
     return <AccesoDenegado />;
   }
 

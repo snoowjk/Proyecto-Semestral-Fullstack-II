@@ -18,6 +18,13 @@ const administrador = {
   rol: "ADMIN",
 };
 
+const vendedor = {
+  id: 3,
+  nombre: "Vendedor",
+  email: "vendedor@ejemplo.com",
+  rol: "VENDEDOR",
+};
+
 function mostrarNavbar(usuario = null, cerrarSesion = async () => {}) {
   return render(
     <MemoryRouter>
@@ -205,5 +212,39 @@ describe("Facture Sneakers - Navbar", () => {
     fireEvent.mouseDown(document.body);
 
     expect(boton.getAttribute("aria-expanded")).toBe("false");
+  });
+  // PRUEBAS DEL ROL VENDEDOR
+  it("debe mostrar solo el panel vendedor y cerrar sesión a un vendedor", () => {
+    mostrarNavbar(vendedor);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Hola, Vendedor/ })
+    );
+
+    const enlace = screen.getByRole("link", {
+      name: /Panel vendedor/,
+    });
+
+    expect(enlace.getAttribute("href")).toBe("/vendedor");
+    expect(screen.queryByText(/Panel administrador/)).toBeNull();
+    expect(screen.queryByText(/Mi perfil/)).toBeNull();
+    expect(screen.queryByText(/Mis compras/)).toBeNull();
+    expect(screen.getByText(/Cerrar sesión/)).not.toBeNull();
+  });
+
+  it("no debe mostrar el carrito a un vendedor", () => {
+    mostrarNavbar(vendedor);
+
+    expect(screen.queryByText("Carrito")).toBeNull();
+  });
+
+  it("no debe mostrar el panel vendedor a un cliente", () => {
+    mostrarNavbar(cliente);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Hola, Juana/ })
+    );
+
+    expect(screen.queryByText(/Panel vendedor/)).toBeNull();
   });
 });

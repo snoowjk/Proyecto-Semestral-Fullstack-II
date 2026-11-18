@@ -40,7 +40,7 @@
 
 .usuarios-resumen {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   margin-bottom: 30px;
 }
@@ -124,6 +124,11 @@
   color: #ff6b86;
 }
 
+.rol-vendedor {
+  background: #3d3418;
+  color: #ffd76b;
+}
+
 .rol-cliente {
   background: #1e3546;
   color: #87caff;
@@ -196,6 +201,12 @@
 
 .usuarios-sin-accion {
   color: #666;
+}
+
+@media (max-width: 1000px) {
+  .usuarios-resumen {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 700px) {

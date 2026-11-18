@@ -174,6 +174,60 @@ class IntegracionApiTests {
     }
 
     // ---------------------------------------------------------------
+    // Rol VENDEDOR
+    // ---------------------------------------------------------------
+
+    @Test
+    void vendedorSoloPuedeConsultarProductosYPedidos() throws Exception {
+        String token = login(crearConRol(Rol.VENDEDOR)).token();
+
+        // Puede ver productos (lista y detalle) y pedidos (lista y detalle)
+        mvc.perform(get("/api/v1/productos").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/admin/boletas").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/admin/boletas/999999").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+
+        // No puede cambiar el estado de un pedido
+        mvc.perform(put("/api/v1/admin/boletas/1/estado").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"estado\":\"PAGADA\"}"))
+                .andExpect(status().isForbidden());
+
+        // No puede crear productos ni ver usuarios
+        mvc.perform(post("/api/v1/productos").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(productoJson(5)))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/admin/clientes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void clienteNoPuedeVerLosPedidosDeTodos() throws Exception {
+        String token = login(registrarCliente()).token();
+
+        mvc.perform(get("/api/v1/admin/boletas").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminAsignaRolVendedorAUnCliente() throws Exception {
+        String admin = login(crearConRol(Rol.ADMIN)).token();
+        String email = registrarCliente();
+        Long clienteId = login(email).id();
+
+        mvc.perform(put("/api/v1/admin/clientes/" + clienteId + "/vendedor")
+                        .header("Authorization", "Bearer " + admin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("VENDEDOR"));
+
+        // Con el nuevo rol ya puede consultar los pedidos
+        String token = login(email).token();
+        mvc.perform(get("/api/v1/admin/boletas").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    // ---------------------------------------------------------------
     // Reglas de negocio: stock y checkout
     // ---------------------------------------------------------------
 
@@ -233,13 +287,17 @@ class IntegracionApiTests {
     }
 
     private String crearAdmin() {
-        String email = "admin" + SECUENCIA.incrementAndGet() + "@test.cl";
-        Cliente admin = new Cliente();
-        admin.setNombreCompleto("Admin Test");
-        admin.setEmail(email);
-        admin.setContrasena(passwordEncoder.encode("Clave123"));
-        admin.setRol(Rol.ADMIN);
-        clienteRepository.save(admin);
+        return crearConRol(Rol.ADMIN);
+    }
+
+    private String crearConRol(Rol rol) {
+        String email = rol.name().toLowerCase() + SECUENCIA.incrementAndGet() + "@test.cl";
+        Cliente cuenta = new Cliente();
+        cuenta.setNombreCompleto("Cuenta Test " + rol);
+        cuenta.setEmail(email);
+        cuenta.setContrasena(passwordEncoder.encode("Clave123"));
+        cuenta.setRol(rol);
+        clienteRepository.save(cuenta);
         return email;
     }
 

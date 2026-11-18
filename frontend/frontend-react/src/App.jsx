@@ -275,6 +275,89 @@ function PanelAdmin() {
   );
 }
 
+// PANEL PRINCIPAL DEL VENDEDOR
+// Solo muestra lo que el vendedor puede hacer: consultar productos y pedidos.
+function PanelVendedor() {
+  const tarjeta = {
+    display: "block",
+    width: "260px",
+    padding: "35px",
+    background: "#171717",
+    border: "1px solid #ff1744",
+    borderRadius: "12px",
+    color: "#fff",
+    textDecoration: "none",
+    textAlign: "center",
+  };
+
+  return (
+    <main
+      style={{
+        minHeight: "75vh",
+        background: "#080808",
+        color: "#fff",
+        padding: "70px 20px",
+        textAlign: "center",
+      }}
+    >
+      <p
+        style={{
+          color: "#ff1744",
+          letterSpacing: "3px",
+          fontWeight: "bold",
+        }}
+      >
+        FACTURE SNEAKERS
+      </p>
+
+      <h1
+        style={{
+          fontSize: "clamp(30px, 5vw, 48px)",
+          fontWeight: "900",
+          margin: "20px 0",
+        }}
+      >
+        PANEL <span style={{ color: "#ff1744" }}>VENDEDOR</span>
+      </h1>
+
+      <p style={{ color: "#aaa", marginBottom: "40px" }}>
+        Consulta los productos y los pedidos de la tienda.
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "20px",
+        }}
+      >
+        <Link to="/vendedor/productos" style={tarjeta}>
+          <div style={{ fontSize: "38px" }}>👟</div>
+          <h2 style={{ fontSize: "21px", margin: "15px 0" }}>
+            PRODUCTOS
+          </h2>
+          <p style={{ color: "#bbb" }}>
+            Ver la lista de zapatillas y su detalle.
+          </p>
+          <strong style={{ color: "#ff1744" }}>VER →</strong>
+        </Link>
+
+        <Link to="/vendedor/pedidos" style={tarjeta}>
+          <div style={{ fontSize: "38px" }}>📦</div>
+          <h2 style={{ fontSize: "21px", margin: "15px 0" }}>
+            PEDIDOS
+          </h2>
+          <p style={{ color: "#bbb" }}>
+            Ver las órdenes de los clientes y su detalle.
+          </p>
+          <strong style={{ color: "#ff1744" }}>VER →</strong>
+        </Link>
+      </div>
+    </main>
+  );
+}
+
 // APLICACIÓN PRINCIPAL
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -540,6 +623,36 @@ function App() {
           element={
             <RutaProtegida usuario={usuario} rol="ADMIN">
               <AdminUsuarios />
+            </RutaProtegida>
+          }
+        />
+
+        {/* PANEL VENDEDOR: requiere rol VENDEDOR */}
+        <Route
+          path="/vendedor"
+          element={
+            <RutaProtegida usuario={usuario} rol="VENDEDOR">
+              <PanelVendedor />
+            </RutaProtegida>
+          }
+        />
+
+        {/* PRODUCTOS (solo lectura): requiere rol VENDEDOR */}
+        <Route
+          path="/vendedor/productos"
+          element={
+            <RutaProtegida usuario={usuario} rol="VENDEDOR">
+              <AdminProductos soloLectura />
+            </RutaProtegida>
+          }
+        />
+
+        {/* PEDIDOS (solo lectura): requiere rol VENDEDOR */}
+        <Route
+          path="/vendedor/pedidos"
+          element={
+            <RutaProtegida usuario={usuario} rol="VENDEDOR">
+              <AdminPedidos soloLectura />
             </RutaProtegida>
           }
         />

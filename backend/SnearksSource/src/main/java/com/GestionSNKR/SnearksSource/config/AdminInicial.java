@@ -10,37 +10,56 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Crea una cuenta de administrador al iniciar el backend, si todavía no existe.
+ * Crea las cuentas de administrador y de vendedor al iniciar el backend,
+ * si todavía no existen.
  *
- * Así el sistema siempre tiene un ADMIN disponible, aunque la base de datos
- * sea nueva. Si la cuenta ya existe, no se modifica.
+ * Así el sistema siempre tiene un ADMIN y un VENDEDOR disponibles, aunque la
+ * base de datos sea nueva. Si una cuenta ya existe, no se modifica.
  *
- * El correo y la contraseña se pueden cambiar con las variables de entorno
- * APP_ADMIN_EMAIL y APP_ADMIN_PASSWORD. La contraseña se guarda cifrada con BCrypt.
+ * Los correos y contraseñas se pueden cambiar con las variables de entorno
+ * APP_ADMIN_EMAIL, APP_ADMIN_PASSWORD, APP_VENDEDOR_EMAIL y
+ * APP_VENDEDOR_PASSWORD. Las contraseñas se guardan cifradas con BCrypt.
  */
 @Configuration
 public class AdminInicial {
 
     @Bean
-    CommandLineRunner crearAdminInicial(
+    CommandLineRunner crearCuentasIniciales(
             ClienteRepository clienteRepository,
             PasswordEncoder passwordEncoder,
-            @Value("${app.admin.email:admin@facture.cl}") String email,
-            @Value("${app.admin.password:Admin123}") String password) {
+            @Value("${app.admin.email:admin@facture.cl}") String adminEmail,
+            @Value("${app.admin.password:Admin123}") String adminPassword,
+            @Value("${app.vendedor.email:vendedor@facture.cl}") String vendedorEmail,
+            @Value("${app.vendedor.password:Vendedor123}") String vendedorPassword) {
 
         return args -> {
-            if (clienteRepository.findByEmail(email).isPresent()) {
-                return;
-            }
+            crearSiNoExiste(clienteRepository, passwordEncoder,
+                    "Administrador Facture", adminEmail, adminPassword, Rol.ADMIN);
 
-            Cliente admin = new Cliente();
-            admin.setNombreCompleto("Administrador Facture");
-            admin.setEmail(email);
-            admin.setContrasena(passwordEncoder.encode(password));
-            admin.setRol(Rol.ADMIN);
-
-            clienteRepository.save(admin);
-            System.out.println("Cuenta de administrador creada: " + email);
+            crearSiNoExiste(clienteRepository, passwordEncoder,
+                    "Vendedor Facture", vendedorEmail, vendedorPassword, Rol.VENDEDOR);
         };
+    }
+
+    private void crearSiNoExiste(
+            ClienteRepository clienteRepository,
+            PasswordEncoder passwordEncoder,
+            String nombre,
+            String email,
+            String password,
+            Rol rol) {
+
+        if (clienteRepository.findByEmail(email).isPresent()) {
+            return;
+        }
+
+        Cliente cuenta = new Cliente();
+        cuenta.setNombreCompleto(nombre);
+        cuenta.setEmail(email);
+        cuenta.setContrasena(passwordEncoder.encode(password));
+        cuenta.setRol(rol);
+
+        clienteRepository.save(cuenta);
+        System.out.println("Cuenta " + rol + " creada: " + email);
     }
 }

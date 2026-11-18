@@ -102,6 +102,26 @@ public class ClienteService {
         return repo.save(existente);
     }
 
+    // Asignar el rol VENDEDOR a un cliente existente.
+    public Cliente asignarVendedor(Long id) {
+        Cliente existente = repo.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Cliente no encontrado"
+                        )
+                );
+
+        if (existente.getRol() == Rol.ADMIN) {
+            throw new IllegalStateException(
+                    "Un administrador no puede pasar a ser vendedor."
+            );
+        }
+
+        existente.setRol(Rol.VENDEDOR);
+
+        return repo.save(existente);
+    }
+
     public Cliente update(Long id, Cliente c) {
         Cliente existente = repo.findById(id)
                 .orElseThrow(() ->

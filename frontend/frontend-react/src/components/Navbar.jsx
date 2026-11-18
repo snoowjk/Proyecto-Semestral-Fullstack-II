@@ -9,6 +9,9 @@ function Navbar({ usuario, cerrarSesion }) {
 
   const perfilRef = useRef(null);
 
+  // El vendedor solo ve su panel: no compra, así que no ve carrito ni pedidos propios
+  const esVendedor = usuario?.rol === "VENDEDOR";
+
   // CERRAR LOS MENÚS
   const cerrarMenu = () => {
     setMenuAbierto(false);
@@ -144,14 +147,16 @@ function Navbar({ usuario, cerrarSesion }) {
             Catálogo
           </NavLink>
 
-          {/* CARRITO */}
-          <NavLink
-            to="/carrito"
-            className="site-navbar-cart"
-            onClick={cerrarMenu}
-          >
-            Carrito
-          </NavLink>
+          {/* CARRITO (no aparece para el vendedor) */}
+          {!esVendedor && (
+            <NavLink
+              to="/carrito"
+              className="site-navbar-cart"
+              onClick={cerrarMenu}
+            >
+              Carrito
+            </NavLink>
+          )}
 
           {/* USUARIO CON SESIÓN INICIADA */}
           {usuario ? (
@@ -197,21 +202,34 @@ function Navbar({ usuario, cerrarSesion }) {
                     </small>
                   </div>
 
-                  {/* MI PERFIL */}
-                  <Link
-                    to="/mi-perfil"
-                    onClick={cerrarMenu}
-                  >
-                    👤 Mi perfil
-                  </Link>
+                  {/* MI PERFIL Y MIS COMPRAS (no aparecen para el vendedor) */}
+                  {!esVendedor && (
+                    <>
+                      <Link
+                        to="/mi-perfil"
+                        onClick={cerrarMenu}
+                      >
+                        👤 Mi perfil
+                      </Link>
 
-                  {/* MIS COMPRAS */}
-                  <Link
-                    to="/mis-pedidos"
-                    onClick={cerrarMenu}
-                  >
-                    📦 Mis compras
-                  </Link>
+                      <Link
+                        to="/mis-pedidos"
+                        onClick={cerrarMenu}
+                      >
+                        📦 Mis compras
+                      </Link>
+                    </>
+                  )}
+
+                  {/* SOLO VENDEDORES */}
+                  {esVendedor && (
+                    <Link
+                      to="/vendedor"
+                      onClick={cerrarMenu}
+                    >
+                      🧾 Panel vendedor
+                    </Link>
+                  )}
 
                   {/* SOLO ADMINISTRADORES */}
                   {usuario.rol === "ADMIN" && (

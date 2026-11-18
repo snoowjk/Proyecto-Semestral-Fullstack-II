@@ -191,6 +191,11 @@ public class BoletaService {
                 .orElseThrow(() -> new IllegalArgumentException("Boleta no encontrada para ese cliente."));
     }
 
+    public Boleta obtenerPorId(Long boletaId) {
+        return boletaRepository.findById(boletaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
+    }
+
     public List<Boleta> listarTodas() {
         return boletaRepository.findAll();
     }

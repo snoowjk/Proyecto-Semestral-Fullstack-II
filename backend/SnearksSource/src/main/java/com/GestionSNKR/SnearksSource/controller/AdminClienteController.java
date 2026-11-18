@@ -67,4 +67,26 @@ public class AdminClienteController {
                     .body(Map.of("mensaje", e.getMessage()));
         }
     }
+
+    // Asignar el rol VENDEDOR a un cliente existente.
+    @PutMapping("/{id}/vendedor")
+    public ResponseEntity<?> asignarVendedor(
+            @PathVariable Long id) {
+        try {
+            Cliente actualizado =
+                    clienteService.asignarVendedor(id);
+
+            return ResponseEntity.ok(
+                    ClienteAdminDTO.desdeCliente(actualizado)
+            );
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensaje", e.getMessage()));
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("mensaje", e.getMessage()));
+        }
+    }
 }

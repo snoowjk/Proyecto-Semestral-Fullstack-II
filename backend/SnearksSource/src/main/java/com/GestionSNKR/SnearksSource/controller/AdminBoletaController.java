@@ -1,4 +1,3 @@
-
 package com.GestionSNKR.SnearksSource.controller;
 
 import com.GestionSNKR.SnearksSource.model.Boleta;
@@ -11,9 +10,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Pedidos de todos los clientes.
+ *
+ *  - ADMIN: puede listar, ver el detalle y cambiar el estado.
+ *  - VENDEDOR: solo puede listar y ver el detalle.
+ */
 @RestController
 @RequestMapping("/api/v1/admin/boletas")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
 public class AdminBoletaController {
 
     private final BoletaService boletaService;
@@ -27,7 +32,18 @@ public class AdminBoletaController {
         return ResponseEntity.ok(boletaService.listarTodas());
     }
 
+    @GetMapping("/{boletaId}")
+    public ResponseEntity<?> obtenerDetalle(@PathVariable Long boletaId) {
+        try {
+            return ResponseEntity.ok(boletaService.obtenerPorId(boletaId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
     @PutMapping("/{boletaId}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> actualizarEstado(
             @PathVariable Long boletaId,
             @RequestBody Map<String, String> datos) {
@@ -47,7 +63,7 @@ public class AdminBoletaController {
                     : HttpStatus.BAD_REQUEST;
 
             return ResponseEntity.status(status)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("mensaje", e.getMessage()));
         }
     }
 }

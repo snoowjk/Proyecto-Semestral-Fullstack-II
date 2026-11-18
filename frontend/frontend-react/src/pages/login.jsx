@@ -82,6 +82,8 @@ export default function Login({ onLogin }) {
           navigate(destino, { replace: true });
         } else if (cliente.rol === "ADMIN") {
           navigate("/admin");
+        } else if (cliente.rol === "VENDEDOR") {
+          navigate("/vendedor");
         } else {
           navigate("/");
         }

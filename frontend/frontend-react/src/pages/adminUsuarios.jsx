@@ -5,13 +5,43 @@ import { apiFetch, extraerMensaje } from "../api.js";
 
 const API = "/api/v1/admin/clientes";
 
+// Cambios de rol que puede hacer el administrador
+const ACCIONES = {
+  administrador: {
+    boton: "HACER ADMIN",
+    confirmar: "SÍ, HACER ADMIN",
+    ruta: "administrador",
+    resultado: "ahora es administrador",
+  },
+  vendedor: {
+    boton: "HACER VENDEDOR",
+    confirmar: "SÍ, HACER VENDEDOR",
+    ruta: "vendedor",
+    resultado: "ahora es vendedor",
+  },
+};
+
+// Qué acciones se ofrecen según el rol actual del usuario
+function accionesDisponibles(rol) {
+  if (rol === "CLIENTE") return ["administrador", "vendedor"];
+  if (rol === "VENDEDOR") return ["administrador"];
+  return [];
+}
+
+function claseRol(rol) {
+  if (rol === "ADMIN") return "rol-admin";
+  if (rol === "VENDEDOR") return "rol-vendedor";
+  return "rol-cliente";
+}
+
 export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [confirmandoId, setConfirmandoId] = useState(null);
-  const [promoviendoId, setPromoviendoId] = useState(null);
+  // { id, accion } del cambio que se está confirmando
+  const [confirmando, setConfirmando] = useState(null);
+  const [procesandoId, setProcesandoId] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const [errorAccion, setErrorAccion] = useState("");
 
@@ -42,15 +72,17 @@ export default function AdminUsuarios() {
     cargarUsuarios();
   }, []);
 
-  // PROMOVER UN CLIENTE A ADMINISTRADOR
-  async function promoverAdministrador(usuario) {
-    setPromoviendoId(usuario.id);
+  // CAMBIAR EL ROL DE UN USUARIO (a administrador o a vendedor)
+  async function cambiarRol(usuario, accion) {
+    const datosAccion = ACCIONES[accion];
+
+    setProcesandoId(usuario.id);
     setMensaje("");
     setErrorAccion("");
 
     try {
       const respuesta = await apiFetch(
-        `${API}/${usuario.id}/administrador`,
+        `${API}/${usuario.id}/${datosAccion.ruta}`,
         { method: "PUT" }
       );
 
@@ -58,7 +90,7 @@ export default function AdminUsuarios() {
         const texto = await respuesta.text();
         throw new Error(
           extraerMensaje(texto) ||
-            "No se pudo promover al usuario."
+            "No se pudo cambiar el rol del usuario."
         );
       }
 
@@ -71,13 +103,13 @@ export default function AdminUsuarios() {
       );
 
       setMensaje(
-        `${usuario.nombreCompleto} ahora es administrador.`
+        `${usuario.nombreCompleto} ${datosAccion.resultado}.`
       );
     } catch (err) {
       setErrorAccion(err.message);
     } finally {
-      setPromoviendoId(null);
-      setConfirmandoId(null);
+      setProcesandoId(null);
+      setConfirmando(null);
     }
   }
 
@@ -89,9 +121,8 @@ export default function AdminUsuarios() {
     return texto.includes(busqueda.toLowerCase());
   });
 
-  const administradores = usuarios.filter(
-    (usuario) => usuario.rol === "ADMIN"
-  ).length;
+  const contar = (rol) =>
+    usuarios.filter((usuario) => usuario.rol === rol).length;
 
   return (
     <main className="admin-usuarios">
@@ -101,7 +132,10 @@ export default function AdminUsuarios() {
             FACTURE SNEAKERS
           </span>
           <h1>Gestión de usuarios</h1>
-          <p>Consulta las cuentas registradas y promueve clientes a administrador.</p>
+          <p>
+            Consulta las cuentas registradas y asigna los roles de
+            administrador y vendedor.
+          </p>
         </div>
 
         <Link to="/admin" className="usuarios-volver">
@@ -117,12 +151,17 @@ export default function AdminUsuarios() {
 
         <div className="usuarios-tarjeta">
           <span>Administradores</span>
-          <strong>{administradores}</strong>
+          <strong>{contar("ADMIN")}</strong>
+        </div>
+
+        <div className="usuarios-tarjeta">
+          <span>Vendedores</span>
+          <strong>{contar("VENDEDOR")}</strong>
         </div>
 
         <div className="usuarios-tarjeta">
           <span>Clientes</span>
-          <strong>{usuarios.length - administradores}</strong>
+          <strong>{contar("CLIENTE")}</strong>
         </div>
       </div>
 
@@ -170,63 +209,73 @@ export default function AdminUsuarios() {
             </thead>
 
             <tbody>
-              {filtrados.map((usuario) => (
-                <tr key={usuario.id}>
-                  <td>#{usuario.id}</td>
-                  <td>{usuario.nombreCompleto}</td>
-                  <td>{usuario.email}</td>
-                  <td>{usuario.comuna || "No indicada"}</td>
-                  <td>
-                    <span
-                      className={`usuario-rol ${
-                        usuario.rol === "ADMIN"
-                          ? "rol-admin"
-                          : "rol-cliente"
-                      }`}
-                    >
-                      {usuario.rol}
-                    </span>
-                  </td>
-                  <td>
-                    {usuario.rol === "ADMIN" ? (
-                      <span className="usuarios-sin-accion">—</span>
-                    ) : confirmandoId === usuario.id ? (
-                      <div className="usuarios-acciones">
-                        <button
-                          type="button"
-                          className="usuarios-boton usuarios-boton-confirmar"
-                          disabled={promoviendoId === usuario.id}
-                          onClick={() => promoverAdministrador(usuario)}
-                        >
-                          {promoviendoId === usuario.id
-                            ? "PROMOVIENDO..."
-                            : "SÍ, PROMOVER"}
-                        </button>
-                        <button
-                          type="button"
-                          className="usuarios-boton usuarios-boton-cancelar"
-                          disabled={promoviendoId === usuario.id}
-                          onClick={() => setConfirmandoId(null)}
-                        >
-                          CANCELAR
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="usuarios-boton"
-                        onClick={() => {
-                          setConfirmandoId(usuario.id);
-                          setMensaje("");
-                          setErrorAccion("");
-                        }}
+              {filtrados.map((usuario) => {
+                const acciones = accionesDisponibles(usuario.rol);
+                const enConfirmacion =
+                  confirmando?.id === usuario.id ? confirmando : null;
+                const procesando = procesandoId === usuario.id;
+
+                return (
+                  <tr key={usuario.id}>
+                    <td>#{usuario.id}</td>
+                    <td>{usuario.nombreCompleto}</td>
+                    <td>{usuario.email}</td>
+                    <td>{usuario.comuna || "No indicada"}</td>
+                    <td>
+                      <span
+                        className={`usuario-rol ${claseRol(usuario.rol)}`}
                       >
-                        HACER ADMIN
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                        {usuario.rol}
+                      </span>
+                    </td>
+                    <td>
+                      {acciones.length === 0 ? (
+                        <span className="usuarios-sin-accion">—</span>
+                      ) : enConfirmacion ? (
+                        <div className="usuarios-acciones">
+                          <button
+                            type="button"
+                            className="usuarios-boton usuarios-boton-confirmar"
+                            disabled={procesando}
+                            onClick={() =>
+                              cambiarRol(usuario, enConfirmacion.accion)
+                            }
+                          >
+                            {procesando
+                              ? "GUARDANDO..."
+                              : ACCIONES[enConfirmacion.accion].confirmar}
+                          </button>
+                          <button
+                            type="button"
+                            className="usuarios-boton usuarios-boton-cancelar"
+                            disabled={procesando}
+                            onClick={() => setConfirmando(null)}
+                          >
+                            CANCELAR
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="usuarios-acciones">
+                          {acciones.map((accion) => (
+                            <button
+                              key={accion}
+                              type="button"
+                              className="usuarios-boton"
+                              onClick={() => {
+                                setConfirmando({ id: usuario.id, accion });
+                                setMensaje("");
+                                setErrorAccion("");
+                              }}
+                            >
+                              {ACCIONES[accion].boton}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

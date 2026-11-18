@@ -6,7 +6,12 @@ import { apiFetch } from "../api.js";
 
 const API = "/api/v1/admin/boletas";
 
-export default function AdminPedidos() {
+/**
+ * Pedidos de todos los clientes.
+ *  - ADMIN (soloLectura = false): ve los pedidos y puede cambiar su estado.
+ *  - VENDEDOR (soloLectura = true): solo ve la lista y el detalle.
+ */
+export default function AdminPedidos({ soloLectura = false }) {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -16,8 +21,12 @@ export default function AdminPedidos() {
     sessionStorage.getItem("facture_usuario") || "null"
   );
 
+  const rolesPermitidos = soloLectura ? ["VENDEDOR", "ADMIN"] : ["ADMIN"];
+  const tieneAcceso = rolesPermitidos.includes(usuario?.rol);
+  const rutaPanel = soloLectura ? "/vendedor" : "/admin";
+
   useEffect(() => {
-    if (usuario?.rol !== "ADMIN") {
+    if (!tieneAcceso) {
       setCargando(false);
       return;
     }
@@ -37,7 +46,7 @@ export default function AdminPedidos() {
       if (!respuesta.ok) {
         throw new Error(
           respuesta.status === 401 || respuesta.status === 403
-            ? "No tienes autorización. Inicia sesión como administrador."
+            ? "No tienes autorización para ver los pedidos."
             : "No se pudieron cargar los pedidos."
         );
       }
@@ -91,11 +100,11 @@ export default function AdminPedidos() {
     return new Date(fecha).toLocaleString("es-CL");
   }
 
-  if (usuario?.rol !== "ADMIN") {
+  if (!tieneAcceso) {
     return (
       <main className="admin-pedidos">
         <h2>Acceso denegado</h2>
-        <p>Esta sección es exclusiva para administradores.</p>
+        <p>No tienes permisos para ver esta sección.</p>
         <Link to="/">Volver al inicio</Link>
       </main>
     );
@@ -106,11 +115,15 @@ export default function AdminPedidos() {
       <div className="pedidos-encabezado">
         <div>
           <span className="pedidos-etiqueta">FACTURE SNEAKERS</span>
-          <h1>Gestión de pedidos</h1>
-          <p>Administra las compras realizadas por los clientes.</p>
+          <h1>{soloLectura ? "Pedidos" : "Gestión de pedidos"}</h1>
+          <p>
+            {soloLectura
+              ? "Consulta las compras realizadas por los clientes."
+              : "Administra las compras realizadas por los clientes."}
+          </p>
         </div>
 
-        <Link to="/admin" className="pedidos-volver">
+        <Link to={rutaPanel} className="pedidos-volver">
           ← Volver al panel
         </Link>
       </div>
@@ -205,6 +218,7 @@ export default function AdminPedidos() {
                 <strong>{formatoPrecio(pedido.total)}</strong>
               </div>
 
+              {!soloLectura && (
               <div className="pedido-acciones">
                 <label htmlFor={`estado-${pedido.id}`}>
                   Cambiar estado:
@@ -223,6 +237,7 @@ export default function AdminPedidos() {
                   <option value="ENVIADA">Enviada</option>
                 </select>
               </div>
+              )}
             </article>
           ))}
         </div>

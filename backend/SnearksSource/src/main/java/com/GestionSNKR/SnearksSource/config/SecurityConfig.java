@@ -107,7 +107,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/productos/**",
                                 "/api/v1/blogs/**").hasRole("ADMIN")
 
-                        // Panel de administración
+                        // Pedidos: el VENDEDOR solo puede consultarlos (lista y detalle)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/admin/boletas",
+                                "/api/v1/admin/boletas/**").hasAnyRole("ADMIN", "VENDEDOR")
+
+                        // Resto del panel de administración: solo ADMIN
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // Carrito, boletas y perfil: usuario autenticado

@@ -20,7 +20,12 @@ const formularioInicial = () => ({
   tallasDisponibles: {},
 });
 
-export default function AdminProductos() {
+/**
+ * Productos de la tienda.
+ *  - ADMIN (soloLectura = false): agrega, edita y elimina productos.
+ *  - VENDEDOR (soloLectura = true): solo ve la lista y el detalle.
+ */
+export default function AdminProductos({ soloLectura = false }) {
   const [productos, setProductos] = useState([]);
   const [formulario, setFormulario] = useState(formularioInicial);
   const [editandoId, setEditandoId] = useState(null);
@@ -29,6 +34,7 @@ export default function AdminProductos() {
   const [eliminandoId, setEliminandoId] = useState(null);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [detalleId, setDetalleId] = useState(null);
 
   async function cargarProductos() {
     setCargando(true);
@@ -243,19 +249,20 @@ export default function AdminProductos() {
   return (
     <main className="admin-productos">
       <header className="admin-productos-header">
-        <p>FACTURE SNEAKERS / ADMIN</p>
+        <p>FACTURE SNEAKERS / {soloLectura ? "VENDEDOR" : "ADMIN"}</p>
 
         <h1>
-          GESTIÓN DE <span>PRODUCTOS</span>
+          {soloLectura ? "" : "GESTIÓN DE "}<span>PRODUCTOS</span>
         </h1>
 
         <p>
-          Administra las zapatillas, los precios y el stock
-          de tu tienda.
+          {soloLectura
+            ? "Consulta las zapatillas, sus precios y el stock por talla."
+            : "Administra las zapatillas, los precios y el stock de tu tienda."}
         </p>
 
         <Link
-          to="/admin"
+          to={soloLectura ? "/vendedor" : "/admin"}
           style={{
             display: "inline-block",
             marginTop: "25px",
@@ -273,6 +280,7 @@ export default function AdminProductos() {
         </Link>
       </header>
 
+      {!soloLectura && (
       <section className="admin-productos-panel">
         <h2>
           {editandoId !== null
@@ -402,11 +410,18 @@ export default function AdminProductos() {
           </p>
         )}
       </section>
+      )}
 
       <section className="admin-productos-panel">
         <h2>
           PRODUCTOS REGISTRADOS ({productos.length})
         </h2>
+
+        {soloLectura && error && (
+          <p className="admin-productos-error" role="alert">
+            {error}
+          </p>
+        )}
 
         {cargando ? (
           <p>Cargando productos...</p>
@@ -454,25 +469,68 @@ export default function AdminProductos() {
                     <p>Stock total: {stockTotal}</p>
                   </div>
 
-                  <div className="admin-productos-botones">
-                    <button
-                      type="button"
-                      onClick={() => editarProducto(producto)}
-                    >
-                      EDITAR
-                    </button>
+                  {soloLectura ? (
+                    <div className="admin-productos-botones">
+                      <button
+                        type="button"
+                        aria-expanded={detalleId === producto.id}
+                        onClick={() =>
+                          setDetalleId(
+                            detalleId === producto.id ? null : producto.id
+                          )
+                        }
+                      >
+                        {detalleId === producto.id
+                          ? "OCULTAR DETALLE"
+                          : "VER DETALLE"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="admin-productos-botones">
+                      <button
+                        type="button"
+                        onClick={() => editarProducto(producto)}
+                      >
+                        EDITAR
+                      </button>
 
-                    <button
-                      type="button"
-                      className="admin-productos-eliminar"
-                      disabled={eliminandoId === producto.id}
-                      onClick={() => eliminarProducto(producto)}
-                    >
-                      {eliminandoId === producto.id
-                        ? "ELIMINANDO..."
-                        : "ELIMINAR"}
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        className="admin-productos-eliminar"
+                        disabled={eliminandoId === producto.id}
+                        onClick={() => eliminarProducto(producto)}
+                      >
+                        {eliminandoId === producto.id
+                          ? "ELIMINANDO..."
+                          : "ELIMINAR"}
+                      </button>
+                    </div>
+                  )}
+
+                  {soloLectura && detalleId === producto.id && (
+                    <div className="admin-productos-ficha">
+                      <p>
+                        {producto.descripcion || "Sin descripción."}
+                      </p>
+
+                      <h4>Stock por talla</h4>
+
+                      <div className="admin-productos-tallas-detalle">
+                        {Object.entries(producto.tallasDisponibles ?? {})
+                          .sort(([a], [b]) => Number(a) - Number(b))
+                          .map(([talla, cantidad]) => (
+                            <span
+                              key={talla}
+                              className={
+                                Number(cantidad) > 0 ? "" : "sin-stock"
+                              }
+                            >
+                              {talla}: {cantidad}
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </article>
               );
             })}
