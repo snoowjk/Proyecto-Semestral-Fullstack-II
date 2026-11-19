@@ -65,6 +65,17 @@ function Detalle() {
     return `/${ruta.replace(/^\/+/, '')}`;
   }
 
+  // Ruta de la colección según la categoría del producto
+  function rutaCategoria(categoria) {
+    const nombre = (categoria || '').toLowerCase();
+
+    if (nombre.includes('jordan')) return '/jordan';
+    if (nombre.includes('sports')) return '/nike-sports';
+    if (nombre.includes('urban')) return '/nike-urban';
+
+    return '/catalogo';
+  }
+
   return (
     <main className="detalle-page">
       {cargando && (
@@ -110,13 +121,12 @@ function Detalle() {
                 Comprar Ahora
               </Link>
 
-              <button
-                type="button"
+              <Link
+                to={rutaCategoria(producto.tipoCategoria)}
                 className="btn-back"
-                onClick={() => window.history.back()}
               >
                 Volver atrás
-              </button>
+              </Link>
             </div>
           </div>
 
