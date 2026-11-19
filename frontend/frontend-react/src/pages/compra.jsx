@@ -83,6 +83,17 @@ function Compra() {
     producto?.tallasDisponibles?.[talla] || 0
   );
 
+  // Ruta de la colección según la categoría del producto
+  function rutaCategoria(categoria) {
+    const nombre = (categoria || '').toLowerCase();
+
+    if (nombre.includes('jordan')) return '/jordan';
+    if (nombre.includes('sports')) return '/nike-sports';
+    if (nombre.includes('urban')) return '/nike-urban';
+
+    return '/catalogo';
+  }
+
   // AGREGAR PRODUCTO AL CARRITO
   async function agregarAlCarrito(evento) {
     evento.preventDefault();
@@ -395,10 +406,10 @@ function Compra() {
               </div>
             )}
 
-            {/* VOLVER AL DETALLE */}
+            {/* VOLVER A LA COLECCIÓN */}
             <div className="compra-volver">
               <Link
-                to={`/detalle?id=${producto.id}`}
+                to={rutaCategoria(producto.tipoCategoria)}
                 className="btn-back"
               >
                 ← VOLVER ATRÁS
